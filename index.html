@@ -122,6 +122,30 @@
   .pill-note{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;color:#bff5da;
     background:#114e34;border:1px solid #1d7a52;padding:3px 8px;border-radius:6px;margin-bottom:12px}
 
+  /* ───────── DASHBOARD VIEW ───────── */
+  .dashwrap{flex:1;overflow:auto;padding:18px 22px}
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+  .kpi{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px}
+  .kpi-v{font-size:19px;font-weight:800;letter-spacing:.2px;white-space:nowrap}
+  .kpi-l{font-size:9.5px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .kpi.a .kpi-v{color:#7fd3ff}
+  .kpi.b .kpi-v{color:#27c281}
+  .kpi.c .kpi-v{color:#ff7aa8}
+  .dash-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .card{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:16px 18px}
+  .card-h{font-size:12px;font-weight:700;color:var(--text);margin-bottom:14px;letter-spacing:.3px}
+  .card-h small{color:var(--muted);font-weight:500;font-size:10px}
+  .bar-row{display:grid;grid-template-columns:96px 1fr 92px;align-items:center;gap:10px;margin-bottom:9px;font-size:11px}
+  .bar-lbl{color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{height:14px;background:var(--panel);border-radius:7px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,#3b82f6,#6c5ce7)}
+  .bar-fill.alt{background:linear-gradient(90deg,#27c281,#10b981)}
+  .bar-val{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:700}
+  .line-svg{width:100%;height:160px;display:block}
+  .line-svg text{fill:var(--muted)}
+  .line-svg .grid{stroke:var(--border);stroke-width:1}
+  .empty-note{color:var(--muted2);font-size:11px;padding:6px 0}
+
   ::-webkit-scrollbar{height:11px;width:11px}
   ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px}
   ::-webkit-scrollbar-track{background:transparent}
@@ -134,8 +158,8 @@
       <div class="lg-row"><div class="mark">WB</div><div class="lg-name">ANALYTICS</div></div>
       <div class="lg-sub">Аналитика продаж</div>
     </div>
-    <div class="nav-item active"><span class="ic">▦</span> Таблица</div>
-    <div class="nav-item"><span class="ic">📊</span> Дашборд</div>
+    <div class="nav-item active" id="navTable" onclick="switchView('table')"><span class="ic">▦</span> Таблица</div>
+    <div class="nav-item" id="navDash" onclick="switchView('dash')"><span class="ic">📊</span> Дашборд</div>
     <div class="nav-spacer"></div>
     <div class="nav-foot" id="navFoot"></div>
   </aside>
@@ -154,9 +178,9 @@
     </div>
 
     <div class="filters">
-      <div class="fl"><label>Бренд</label><select id="fBrand" onchange="render()"></select></div>
+      <div class="fl"><label>Бренд</label><select id="fBrand" onchange="refresh()"></select></div>
       <div class="fl"><label>Категория</label><select id="fCat"><option>Все категории</option></select></div>
-      <div class="fl"><label>Поиск</label><input id="fSearch" placeholder="артикул или код…" oninput="render()"></div>
+      <div class="fl"><label>Поиск</label><input id="fSearch" placeholder="артикул или код…" oninput="refresh()"></div>
       <div class="right">
         <button class="btn grad" id="btnGrad" onclick="toggleGrad()">▦ Градиент</button>
         <button class="btn" onclick="toggleTheme()" id="btnTheme" title="Тема">☀</button>
@@ -168,7 +192,8 @@
       <span id="stText">загрузка…</span>
     </div>
 
-    <div class="tablewrap"><table id="tbl"></table></div>
+    <div class="tablewrap" id="tableView"><table id="tbl"></table></div>
+    <div class="dashwrap" id="dashView" style="display:none"></div>
   </main>
 
   <div class="modal-bg" id="tokenModal">
@@ -295,7 +320,7 @@
       MODEL.live=false;
       setStatus("warn", `Оффлайн-снимок (${MODEL.source||""} · ${MODEL.generatedAt||""}). Для живого обновления откройте через https/локальный сервер. [${e.message}]`);
     }
-    initFilters(); render();
+    initFilters(); refresh();
   }
 
   function nowStr(){
@@ -316,15 +341,19 @@
       `Источник:<br>Google Sheets<br>«Mois»<br><br>${MODEL.dates.length} дн · ${MODEL.articles.length} арт.`;
   }
 
-  // ───────── рендер ─────────
-  function render(){
-    if(!MODEL) return;
+  // ───────── общий фильтр ─────────
+  function filteredArticles(){
     const q=(document.getElementById('fSearch').value||'').toLowerCase().trim();
     const brand=document.getElementById('fBrand').value;
-    const list=MODEL.articles.filter(a=>
+    return MODEL.articles.filter(a=>
       (!brand||a.brand===brand) &&
       (!q || a.art.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)));
+  }
 
+  // ───────── рендер ТАБЛИЦЫ ─────────
+  function render(){
+    if(!MODEL) return;
+    const list=filteredArticles();
     let h='<thead><tr><th class="col-art">АРТИКУЛ</th><th class="col-metric">МЕТРИКА</th>'+
       MODEL.dates.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
 
@@ -379,6 +408,93 @@
     </div>`;
   }
 
+  // ───────── рендер ДАШБОРДА (визуальная сводка) ─────────
+  function gi(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g," "); }
+  // счётные метрики: в листе иногда ошибочно стоит формат «%» (значение ×100).
+  // Для СВОДКИ разворачиваем обратно (÷100), чтобы KPI/чарты не раздувались.
+  // В ТАБЛИЦЕ значение остаётся как в листе — чтобы заказчик увидел глюк и поправил.
+  const COUNT_METRICS=new Set(["заказы","заказы рк","заказы общие","продажи","переходы"]);
+  function cval(name,v){
+    let n=toNum(v); if(n===null) return null;
+    if(COUNT_METRICS.has(name.toLowerCase()) && /%/.test(v)) n=n/100;
+    return n;
+  }
+  function mLatest(a,name){
+    const m=a.metrics.find(x=>x.name.toLowerCase()===name); if(!m) return null;
+    for(let i=m.values.length-1;i>=0;i--){const n=cval(name,m.values[i]); if(n!==null) return n;}
+    return null;
+  }
+  function mSeries(list,name){
+    const s=MODEL.dates.map(()=>0);
+    list.forEach(a=>{const m=a.metrics.find(x=>x.name.toLowerCase()===name);
+      if(m) m.values.forEach((v,i)=>{const n=cval(name,v); if(n!==null) s[i]+=n;});});
+    return s;
+  }
+  function topBy(list,name,k){
+    return list.map(a=>({label:a.code,value:mLatest(a,name)||0}))
+      .filter(x=>x.value>0).sort((a,b)=>b.value-a.value).slice(0,k);
+  }
+  function barChart(title,sub,items,alt,unit){
+    if(!items.length) return `<div class="card"><div class="card-h">${title} <small>${sub||''}</small></div><div class="empty-note">нет ненулевых данных за период</div></div>`;
+    const max=Math.max(...items.map(i=>i.value),1);
+    const rows=items.map(i=>`<div class="bar-row"><div class="bar-lbl">${i.label}</div>
+      <div class="bar-track"><div class="bar-fill${alt?' alt':''}" style="width:${(i.value/max*100).toFixed(1)}%"></div></div>
+      <div class="bar-val">${gi(i.value)}${unit||''}</div></div>`).join('');
+    return `<div class="card"><div class="card-h">${title} <small>${sub||''}</small></div>${rows}</div>`;
+  }
+  function lineCard(title,sub,values,unit){
+    const w=560,h=160,pad=30, n=values.length;
+    const max=Math.max(...values,1);
+    const xs=values.map((_,i)=>pad+i*((w-2*pad)/Math.max(n-1,1)));
+    const ys=values.map(v=>h-pad-(v/max)*(h-2*pad-12));
+    const line=xs.map((x,i)=>`${x},${ys[i]}`).join(' ');
+    const dots=xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3.6" fill="#6c5ce7"/>`+
+      `<text x="${x}" y="${ys[i]-9}" text-anchor="middle" font-size="10" font-weight="700" fill="#cdd5e6">${gi(values[i])}${unit||''}</text>`).join('');
+    const xl=xs.map((x,i)=>`<text x="${x}" y="${h-9}" text-anchor="middle" font-size="9">${MODEL.dates[i]||''}</text>`).join('');
+    const base=`<line class="grid" x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/>`;
+    return `<div class="card"><div class="card-h">${title} <small>${sub||''}</small></div>
+      <svg class="line-svg" viewBox="0 0 ${w} ${h}">${base}<polyline points="${line}" fill="none" stroke="#6c5ce7" stroke-width="2.5"/>${dots}${xl}</svg></div>`;
+  }
+
+  function renderDash(){
+    if(!MODEL){return;}
+    const list=filteredArticles();
+    const sumL=name=>list.reduce((s,a)=>s+(mLatest(a,name)||0),0);
+    const last=MODEL.dates[MODEL.dates.length-1]||"";
+    const zatr=sumL('затраты'), vyr=sumL('заказы руб');
+    const drr = vyr>0 ? (zatr/vyr*100).toFixed(1)+'%' : '—';
+    const kpis=[
+      {c:'',  v:list.length,                 l:'Артикулов'},
+      {c:'a', v:gi(sumL('заказы рк')),        l:`Заказы РК · ${last}`},
+      {c:'',  v:gi(sumL('заказы общие')),     l:`Заказы всего · ${last}`},
+      {c:'b', v:gi(vyr)+' ₽',                 l:`Выручка · ${last}`},
+      {c:'c', v:gi(zatr)+' ₽',                l:`Затраты на РК · ${last}`},
+      {c:'a', v:drr,                          l:'ДРР средний'},
+    ];
+    let h='<div class="kpi-grid">'+kpis.map(k=>`<div class="kpi ${k.c}"><div class="kpi-v">${k.v}</div><div class="kpi-l">${k.l}</div></div>`).join('')+'</div>';
+    h+='<div class="dash-row">'+
+        barChart('Топ-8 по затратам на РК','₽, посл. день',topBy(list,'затраты',8),false,' ₽')+
+        barChart('Топ-8 по заказам РК','шт, посл. день',topBy(list,'заказы рк',8),true,'')+
+      '</div>';
+    h+='<div class="dash-row">'+
+        lineCard('Затраты на РК по дням','сумма по всем артикулам',mSeries(list,'затраты'),' ₽')+
+        lineCard('Заказы РК по дням','сумма по всем артикулам',mSeries(list,'заказы рк'),'')+
+      '</div>';
+    document.getElementById('dashView').innerHTML=h;
+  }
+
+  // ───────── переключение вкладок ─────────
+  let VIEW='table';
+  function switchView(v){
+    VIEW=v;
+    document.getElementById('tableView').style.display = v==='table'?'':'none';
+    document.getElementById('dashView').style.display  = v==='dash'?'':'none';
+    document.getElementById('navTable').classList.toggle('active', v==='table');
+    document.getElementById('navDash').classList.toggle('active', v==='dash');
+    document.getElementById('btnGrad').style.display = v==='table'?'':'none';
+  }
+  function refresh(){ render(); renderDash(); }
+
   function toggleGrad(){GRAD=!GRAD;document.getElementById('btnGrad').classList.toggle('on',GRAD);render();}
   function toggleTheme(){const b=document.body,n=b.getAttribute('data-theme')==='dark'?'light':'dark';
     b.setAttribute('data-theme',n);document.getElementById('btnTheme').textContent=n==='dark'?'☀':'🌙';}
@@ -386,7 +502,11 @@
   function closeTokenModal(){document.getElementById('tokenModal').classList.remove('show');}
 
   if(location.hash.includes('grad')){GRAD=true;}
-  loadData(false).then(()=>{ if(GRAD) document.getElementById('btnGrad').classList.add('on'); });
+  if(location.hash.includes('dash')){ VIEW='dash'; }
+  loadData(false).then(()=>{
+    if(GRAD) document.getElementById('btnGrad').classList.add('on');
+    if(VIEW==='dash') switchView('dash');
+  });
 </script>
 </body>
 </html>
