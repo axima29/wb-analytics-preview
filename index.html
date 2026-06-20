@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WB Analytics — Таблица аналитики</title>
+<style>
+  :root{
+    --bg:#0a0e17; --panel:#0d1320; --panel2:#111829; --panel3:#0f1524;
+    --border:#1d2740; --border2:#27314e;
+    --text:#e7ecf6; --muted:#7d8aa3; --muted2:#586079;
+    --accent:#ff4d87; --accentdim:#ff4d8722;
+    --green:#27c281; --greendim:#27c28122; --indigo:#6c5ce7;
+  }
+  [data-theme="light"]{
+    --bg:#eef1f6; --panel:#fff; --panel2:#f5f7fb; --panel3:#fff;
+    --border:#e2e7f0; --border2:#d3dae6; --text:#16203a;
+    --muted:#6a748c; --muted2:#9aa3b7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);font-size:13px;-webkit-font-smoothing:antialiased;
+    display:flex;min-height:100vh}
+
+  .sidebar{width:118px;flex-shrink:0;background:linear-gradient(180deg,#0b0f1a,#080b12);
+    border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 0}
+  [data-theme="light"] .sidebar{background:linear-gradient(180deg,#fff,#f3f5fa)}
+  .logo{padding:0 16px 22px;border-bottom:1px solid var(--border);margin-bottom:14px}
+  .logo .lg-row{display:flex;align-items:center;gap:7px}
+  .logo .mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#b3247a);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff}
+  .logo .lg-name{font-weight:800;font-size:13px;letter-spacing:.5px}
+  .logo .lg-sub{font-size:8px;letter-spacing:1.5px;color:var(--muted);margin-top:6px;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:10px 16px;color:var(--muted);
+    font-size:11px;font-weight:600;letter-spacing:.5px;cursor:pointer;border-left:2px solid transparent}
+  .nav-item .ic{width:15px;text-align:center;opacity:.85}
+  .nav-item.active{color:var(--text);background:linear-gradient(90deg,var(--accentdim),transparent);
+    border-left-color:var(--accent)}
+  .nav-spacer{flex:1}
+  .nav-foot{padding:0 16px;font-size:8px;color:var(--muted2);line-height:1.6}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;
+    border-bottom:1px solid var(--border)}
+  .topbar .ttl{display:flex;align-items:baseline;gap:12px}
+  .topbar h1{font-size:17px;font-weight:800;letter-spacing:.6px}
+  .topbar .sub{font-size:11px;color:var(--muted)}
+  .tb-btns{display:flex;gap:9px}
+  .btn{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:9px;
+    border:1px solid var(--border2);background:var(--panel2);color:var(--text);
+    font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:.3px}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:linear-gradient(135deg,#19543a,#114e34);border-color:#1d7a52;color:#bff5da}
+  .btn.primary:hover{box-shadow:0 0 0 2px var(--greendim)}
+
+  .filters{display:flex;align-items:flex-end;gap:18px;padding:14px 22px;border-bottom:1px solid var(--border);
+    background:var(--panel3)}
+  .fl{display:flex;flex-direction:column;gap:5px}
+  .fl label{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700}
+  .fl select,.fl input{background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+    border-radius:8px;padding:8px 11px;font-size:12px;min-width:150px;outline:none}
+  .fl input::placeholder{color:var(--muted2)}
+  .fl select:focus,.fl input:focus{border-color:var(--accent)}
+  .filters .right{margin-left:auto;display:flex;gap:9px;align-items:flex-end}
+  .btn.grad{border-color:#3a3470;background:#1a1733;color:#cdc7ff}
+  .btn.grad.on{background:linear-gradient(135deg,var(--indigo),#4b3fb0);border-color:var(--indigo);color:#fff}
+
+  .statusbar{display:flex;align-items:center;gap:10px;padding:7px 22px;font-size:10.5px;color:var(--muted);
+    border-bottom:1px solid var(--border);background:var(--panel)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+  .dot.warn{background:#e6a23c;box-shadow:0 0 6px #e6a23c}
+  .dot.err{background:#e0556b;box-shadow:0 0 6px #e0556b}
+  .statusbar b{color:var(--text);font-weight:700}
+
+  .tablewrap{flex:1;overflow:auto;position:relative}
+  table{border-collapse:separate;border-spacing:0;font-size:11.5px;width:max-content;min-width:100%}
+  thead th{position:sticky;top:0;z-index:5;background:var(--panel2);border-bottom:1px solid var(--border2);
+    color:var(--muted);font-weight:700;padding:10px 10px;text-align:center;font-size:10.5px;
+    letter-spacing:.4px;white-space:nowrap}
+  th.col-art,th.col-metric{z-index:7}
+  th.col-art{left:0;text-align:left;padding-left:18px}
+  th.col-metric{left:210px}
+  td.c-art{position:sticky;left:0;z-index:4;background:var(--panel);border-right:1px solid var(--border2);
+    width:210px;min-width:210px;vertical-align:top;padding:12px}
+  td.c-metric{position:sticky;left:210px;z-index:4;background:var(--panel);border-right:1px solid var(--border2);
+    width:150px;min-width:150px;color:var(--muted);font-weight:600;padding:0 12px;white-space:nowrap}
+  td.val{padding:0 14px;text-align:center;color:var(--text);font-variant-numeric:tabular-nums;
+    border-bottom:1px solid var(--border);height:30px;white-space:nowrap;min-width:96px}
+  tbody tr{height:30px}
+  tbody tr.metric-row:hover td.val{background:rgba(255,255,255,.03)}
+  [data-theme="light"] tbody tr.metric-row:hover td.val{background:rgba(0,0,0,.03)}
+  tr.art-sep td{border-top:2px solid var(--border2)}
+  td.val.dash{color:var(--muted2)}
+
+  .acard .a-num{font-size:13px;font-weight:800;letter-spacing:.3px}
+  .acard .a-badge{display:inline-block;margin-top:5px;font-size:9px;font-weight:700;letter-spacing:.5px;
+    padding:3px 7px;border-radius:6px;background:linear-gradient(135deg,#7a1f55,#5a1740);color:#ffb3da}
+  .acard .photo{margin-top:10px;width:100%;height:172px;border-radius:8px;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#2b3340,#1b2029);border:1px solid var(--border2)}
+  .acard .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .acard .photo .wb{position:absolute;top:6px;left:6px;z-index:2;background:var(--accent);color:#fff;font-size:8px;
+    font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:.5px}
+  .acard .photo .ph-ic{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    font-size:26px;opacity:.3}
+  .acard .photo.noimg .ph-ic{display:flex}
+  .acard .kv{margin-top:10px;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+  .acard .kv .row{display:flex;justify-content:space-between;font-size:10px;padding:4px 8px;
+    border-top:1px solid var(--border)}
+  .acard .kv .row:first-child{border-top:none}
+  .acard .kv .row span{color:var(--muted)}
+  .acard .kv .row b{color:var(--text);font-weight:700}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(3,6,12,.72);display:none;align-items:center;
+    justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--border2);border-radius:14px;padding:24px;width:460px;max-width:92vw}
+  .modal h3{font-size:15px;margin-bottom:6px}
+  .modal p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+  .modal a{color:#7fd3ff}
+  .modal .row{display:flex;gap:9px;justify-content:flex-end}
+  .pill-note{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;color:#bff5da;
+    background:#114e34;border:1px solid #1d7a52;padding:3px 8px;border-radius:6px;margin-bottom:12px}
+
+  ::-webkit-scrollbar{height:11px;width:11px}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body data-theme="dark">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="lg-row"><div class="mark">WB</div><div class="lg-name">ANALYTICS</div></div>
+      <div class="lg-sub">Аналитика продаж</div>
+    </div>
+    <div class="nav-item active"><span class="ic">▦</span> Таблица</div>
+    <div class="nav-item"><span class="ic">📊</span> Дашборд</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-foot" id="navFoot"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="ttl">
+        <h1>ТАБЛИЦА АНАЛИТИКИ</h1>
+        <span class="sub">источник — Google-таблица</span>
+      </div>
+      <div class="tb-btns">
+        <button class="btn" onclick="openTokenModal()"><span class="ic">🔑</span> API-токен</button>
+        <button class="btn"><span class="ic">⚗</span> Тест воронки</button>
+        <button class="btn primary" onclick="loadData(true)"><span class="ic">⟳</span> Обновить</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="fl"><label>Бренд</label><select id="fBrand" onchange="render()"></select></div>
+      <div class="fl"><label>Категория</label><select id="fCat"><option>Все категории</option></select></div>
+      <div class="fl"><label>Поиск</label><input id="fSearch" placeholder="артикул или код…" oninput="render()"></div>
+      <div class="right">
+        <button class="btn grad" id="btnGrad" onclick="toggleGrad()">▦ Градиент</button>
+        <button class="btn" onclick="toggleTheme()" id="btnTheme" title="Тема">☀</button>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span class="dot" id="stDot"></span>
+      <span id="stText">загрузка…</span>
+    </div>
+
+    <div class="tablewrap"><table id="tbl"></table></div>
+  </main>
+
+  <div class="modal-bg" id="tokenModal">
+    <div class="modal">
+      <div class="pill-note">ИСТОЧНИК ДАННЫХ</div>
+      <h3>Как обновляются данные</h3>
+      <p>Сейчас дашборд тянет данные <b>напрямую из Google-таблицы</b> (вкладка «Mois»),
+         каждый раз при загрузке и по кнопке «Обновить». Любая правка заказчика в таблице
+         появляется в дашборде на следующем обновлении — <b>файл редактировать не нужно</b>.<br><br>
+         Кнопка «API-токен» — задел под Этап 2: переключение источника с Google-таблицы
+         на прямой WB API (Аналитика · Статистика · Продвижение · Контент · Цены · Отзывы).</p>
+      <div class="row"><button class="btn primary" onclick="closeTokenModal()">Понятно</button></div>
+    </div>
+  </div>
+
+<script src="data_snapshot.js"></script>
+<script>
+  // ───────── конфиг источника ─────────
+  const SHEET_ID = "1MndaQ5bQrqRwmVthcBxO_lwOq73HsZPk";
+  const SHEET_GID = "1356296299"; // вкладка «Mois»
+  const gvizURL = () =>
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}&t=${Date.now()}`;
+
+  let MODEL = null, GRAD = false;
+
+  // ───────── CSV parser (RFC4180) ─────────
+  function parseCSV(text){
+    const rows=[]; let row=[], field="", q=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(q){
+        if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; }
+        else field+=c;
+      } else {
+        if(c==='"') q=true;
+        else if(c===','){ row.push(field); field=""; }
+        else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+        else if(c==='\r'){ /* skip */ }
+        else field+=c;
+      }
+    }
+    if(field!==""||row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  // ───────── value cleanup (зеркалим лист) ─────────
+  const BAD=new Set(["","#DIV/0!","#REF!","#N/A","#ЗНАЧ!","#ССЫЛКА!"]);
+  function clean(s){
+    s=(s||"").trim();
+    if(BAD.has(s)) return "—";
+    const rub = s.startsWith("р.")||s.startsWith("Р.");
+    s=s.replace(/^[рР]\./,"").replace(/ /g," ").trim();
+    if(rub && s && s!=="—") s=s+" ₽";
+    return s||"—";
+  }
+  const COST=["затрат","cpc","cpo","cps","дрр","себес","комис","спп"];
+  function direction(name){
+    const n=name.toLowerCase();
+    if(n.includes("цена")) return 0;
+    return COST.some(h=>n.includes(h))?-1:1;
+  }
+  function toNum(disp){
+    if(!disp||disp==="—") return null;
+    let s=disp.replace("₽","").replace("%","").replace(/\s/g,"").replace(",",".");
+    const v=parseFloat(s); return isNaN(v)?null:v;
+  }
+
+  // ───────── CSV → модель (тот же разбор, что build_snapshot.py) ─────────
+  function buildModel(csvText){
+    const rows=parseCSV(csvText);
+    const header=rows[0]||[];
+    const dre=/^\d{2}\.\d{2}\.\d{4}$/;
+    const dateCols=[];
+    for(let c=2;c<header.length;c++) if(dre.test((header[c]||"").trim())) dateCols.push(c);
+    const hasVal=c=>rows.slice(1).some(r=>(r[c]||"").trim()!=="");
+    const active=dateCols.filter(hasVal);
+    const dates=active.map(c=>header[c].trim());
+
+    // блоки по строкам-разделителям «воронка тест»
+    const blocks=[]; let cur=[];
+    for(const r of rows.slice(1)){
+      cur.push(r);
+      if(((r[1]||"").trim().toLowerCase())==="воронка тест"){ blocks.push(cur); cur=[]; }
+    }
+    if(cur.length) blocks.push(cur);
+
+    const codeRe=/^[A-Z]{2}\d{4}[A-Z]{2}$/, numRe=/^\d{8,}$/;
+    const articles=[];
+    for(const b of blocks){
+      let art=null, code=null;
+      for(const r of b){
+        const c0=(r[0]||"").trim();
+        if(numRe.test(c0)&&!art) art=c0;
+        if(codeRe.test(c0)&&!code) code=c0;
+      }
+      const metrics=[];
+      for(const r of b){
+        const name=(r[1]||"").trim();
+        if(!name) continue;
+        const vals=active.map(c=>clean(r[c]||""));
+        if(vals.every(v=>v==="—")) continue;
+        metrics.push({name, values:vals, dir:direction(name)});
+      }
+      if(!metrics.length) continue;
+      articles.push({art:art||"", code:code||"—", brand:(code?code.slice(0,2):"—"), metrics});
+    }
+    return {dates, articles};
+  }
+
+  // ───────── загрузка: живой fetch → фолбэк на снимок ─────────
+  async function loadData(manual){
+    setStatus("warn", manual?"обновляю из Google-таблицы…":"загружаю из Google-таблицы…");
+    try{
+      const res=await fetch(gvizURL(),{cache:"no-store"});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const txt=await res.text();
+      const m=buildModel(txt);
+      if(!m.articles.length) throw new Error("0 артикулов");
+      MODEL=m; MODEL.live=true;
+      setStatus("ok", `Живой источник: Google Sheets · ${m.articles.length} артикулов · даты ${m.dates.join(" · ")} · обновлено ${nowStr()}`);
+    }catch(e){
+      // фолбэк: оффлайн-снимок (например, при открытии файла двойным кликом)
+      MODEL = window.SNAPSHOT || {dates:[],articles:[]};
+      MODEL.live=false;
+      setStatus("warn", `Оффлайн-снимок (${MODEL.source||""} · ${MODEL.generatedAt||""}). Для живого обновления откройте через https/локальный сервер. [${e.message}]`);
+    }
+    initFilters(); render();
+  }
+
+  function nowStr(){
+    const d=new Date(), p=n=>String(n).padStart(2,"0");
+    return `${p(d.getDate())}.${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function setStatus(kind,text){
+    document.getElementById('stDot').className='dot'+(kind==='ok'?'':' '+kind);
+    document.getElementById('stText').innerHTML=text;
+  }
+
+  // ───────── фильтры ─────────
+  function initFilters(){
+    const brands=[...new Set(MODEL.articles.map(a=>a.brand))].sort();
+    const fb=document.getElementById('fBrand');
+    fb.innerHTML='<option value="">Все бренды</option>'+brands.map(b=>`<option>${b}</option>`).join('');
+    document.getElementById('navFoot').innerHTML =
+      `Источник:<br>Google Sheets<br>«Mois»<br><br>${MODEL.dates.length} дн · ${MODEL.articles.length} арт.`;
+  }
+
+  // ───────── рендер ─────────
+  function render(){
+    if(!MODEL) return;
+    const q=(document.getElementById('fSearch').value||'').toLowerCase().trim();
+    const brand=document.getElementById('fBrand').value;
+    const list=MODEL.articles.filter(a=>
+      (!brand||a.brand===brand) &&
+      (!q || a.art.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)));
+
+    let h='<thead><tr><th class="col-art">АРТИКУЛ</th><th class="col-metric">МЕТРИКА</th>'+
+      MODEL.dates.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
+
+    list.forEach(a=>{
+      const rows=a.metrics.length;
+      a.metrics.forEach((m,mi)=>{
+        h+=`<tr class="metric-row${mi===0?' art-sep':''}">`;
+        if(mi===0) h+=`<td class="c-art" rowspan="${rows}">${cardHTML(a)}</td>`;
+        h+=`<td class="c-metric">${m.name}</td>`;
+        const nums=GRAD?m.values.map(toNum).filter(v=>v!==null):[];
+        const mn=Math.min(...nums), mx=Math.max(...nums);
+        m.values.forEach(v=>{
+          let style="", cls="val";
+          if(v==="—") cls+=" dash";
+          if(GRAD && m.dir!==0 && nums.length>1 && mx!==mn){
+            const num=toNum(v);
+            if(num!==null) style=heat(num,mn,mx,m.dir);
+          }
+          h+=`<td class="${cls}" style="${style}">${v}</td>`;
+        });
+        h+='</tr>';
+      });
+    });
+    h+='</tbody>';
+    document.getElementById('tbl').innerHTML=h;
+  }
+
+  function heat(v,mn,mx,dir){
+    let t=(v-mn)/(mx-mn); if(dir<0) t=1-t;
+    let r,g,b;
+    if(t<0.5){const k=t/0.5;r=231;g=Math.round(76+120*k);b=Math.round(60-45*k);}
+    else{const k=(t-0.5)/0.5;r=Math.round(241-202*k);g=Math.round(196-2*k);b=Math.round(15+114*k);}
+    return `background:rgba(${r},${g},${b},.18);color:#fff;`;
+  }
+
+  function pick(a,name){ const m=a.metrics.find(x=>x.name.toLowerCase()===name); return m?m.values[m.values.length-1]:null; }
+  function cardHTML(a){
+    const kvDefs=[["остатки WB","ост. WB"],["оборачиваемость","оборач."],["общие остатки","общие ост."],
+                  ["отзывы","отзывы"],["рейтинг карточки","рейтинг"]];
+    const kv=kvDefs.map(([key,lbl])=>{const v=pick(a,key); return v&&v!=="—"?`<div class="row"><span>${lbl}</span><b>${v}</b></div>`:""}).join('');
+    // фото — по той же ссылке, что в формуле =IMAGE() в таблице: getpic по nmID
+    const img = a.art ? `https://wbninjabot.ru/getpic/?u=${a.art}` : "";
+    const photo = `<div class="photo${img?'':' noimg'}">`+
+      (img?`<img src="${img}" referrerpolicy="no-referrer" loading="lazy" `+
+           `onerror="this.remove();this.closest('.photo').classList.add('noimg')">`:"")+
+      `<span class="wb">WB</span><span class="ph-ic">🩱</span></div>`;
+    return `<div class="acard">
+      <div class="a-num">${a.art||"—"}</div>
+      <span class="a-badge">${a.code}</span>
+      ${photo}
+      ${kv?`<div class="kv">${kv}</div>`:""}
+    </div>`;
+  }
+
+  function toggleGrad(){GRAD=!GRAD;document.getElementById('btnGrad').classList.toggle('on',GRAD);render();}
+  function toggleTheme(){const b=document.body,n=b.getAttribute('data-theme')==='dark'?'light':'dark';
+    b.setAttribute('data-theme',n);document.getElementById('btnTheme').textContent=n==='dark'?'☀':'🌙';}
+  function openTokenModal(){document.getElementById('tokenModal').classList.add('show');}
+  function closeTokenModal(){document.getElementById('tokenModal').classList.remove('show');}
+
+  if(location.hash.includes('grad')){GRAD=true;}
+  loadData(false).then(()=>{ if(GRAD) document.getElementById('btnGrad').classList.add('on'); });
+</script>
+</body>
+</html>
