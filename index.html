@@ -6,10 +6,11 @@
 <title>WB Analytics — Таблица аналитики</title>
 <style>
   :root{
-    --bg:#0c0c0e; --panel:#141416; --panel2:#1a1a1d; --panel3:#141416;
-    --border:#262629; --border2:#313135;
-    --text:#e9eaee; --muted:#8a8a94; --muted2:#5c5c64;
-    --accent:#ff4d87; --accentdim:#ff4d8722;
+    --bg:#070b16; --panel:#0c1220; --panel2:#111a2c; --panel3:#0c1220;
+    --border:#1a2438; --border2:#26324c;
+    --text:#e9ecf3; --muted:#7e8aa3; --muted2:#586079;
+    --accent:#e3c068; --accentdim:#e3c06822;       /* золотистый акцент */
+    --gold2:#caa544;
     --green:#27c281; --greendim:#27c28122; --indigo:#6c5ce7;
   }
   [data-theme="light"]{
@@ -23,14 +24,14 @@
     background:var(--bg);color:var(--text);font-size:13px;-webkit-font-smoothing:antialiased;
     display:flex;min-height:100vh}
 
-  .sidebar{width:118px;flex-shrink:0;background:linear-gradient(180deg,#0d0d0f,#090909);
+  .sidebar{width:118px;flex-shrink:0;background:linear-gradient(180deg,#0a0f1d,#05070f);
     border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 0}
   [data-theme="light"] .sidebar{background:linear-gradient(180deg,#fff,#f3f5fa)}
   .logo{padding:0 16px 22px;border-bottom:1px solid var(--border);margin-bottom:14px}
   .logo .lg-row{display:flex;align-items:center;gap:7px}
-  .logo .mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#b3247a);
-    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff}
-  .logo .lg-name{font-weight:800;font-size:13px;letter-spacing:.5px}
+  .logo .mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--gold2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#1a1300}
+  .logo .lg-name{font-weight:800;font-size:13px;letter-spacing:.5px;color:var(--accent)}
   .logo .lg-sub{font-size:8px;letter-spacing:1.5px;color:var(--muted);margin-top:6px;text-transform:uppercase}
   .nav-item{display:flex;align-items:center;gap:9px;padding:10px 16px;color:var(--muted);
     font-size:11px;font-weight:600;letter-spacing:.5px;cursor:pointer;border-left:2px solid transparent}
@@ -44,7 +45,7 @@
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;
     border-bottom:1px solid var(--border)}
   .topbar .ttl{display:flex;align-items:baseline;gap:12px}
-  .topbar h1{font-size:17px;font-weight:800;letter-spacing:.6px}
+  .topbar h1{font-size:17px;font-weight:800;letter-spacing:.6px;color:var(--accent)}
   .topbar .sub{font-size:11px;color:var(--muted)}
   .tb-btns{display:flex;gap:9px}
   .btn{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:9px;
@@ -95,7 +96,8 @@
 
   .acard .a-num{font-size:13px;font-weight:800;letter-spacing:.3px}
   .acard .a-badge{display:inline-block;margin-top:5px;font-size:9px;font-weight:700;letter-spacing:.5px;
-    padding:3px 7px;border-radius:6px;background:linear-gradient(135deg,#7a1f55,#5a1740);color:#ffb3da}
+    padding:3px 7px;border-radius:6px;background:linear-gradient(135deg,#4a3c14,#352a0d);color:#e8d49a;
+    border:1px solid #5c4a1c}
   .acard .photo{margin-top:10px;width:100%;height:172px;border-radius:8px;position:relative;overflow:hidden;
     background:linear-gradient(160deg,#2b3340,#1b2029);border:1px solid var(--border2)}
   .acard .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
