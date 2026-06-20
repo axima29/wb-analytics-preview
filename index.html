@@ -148,6 +148,49 @@
   .line-svg .grid{stroke:var(--border);stroke-width:1}
   .empty-note{color:var(--muted2);font-size:11px;padding:6px 0}
 
+  /* ───────── MOBILE / АДАПТИВ ───────── */
+  @media (max-width:760px){
+    body{flex-direction:column}
+    .sidebar{width:100%;height:auto;flex-direction:row;align-items:center;gap:4px;
+      padding:7px 10px;border-right:none;border-bottom:1px solid var(--border);
+      background:linear-gradient(90deg,#0a0f1d,#05070f)}
+    .logo{padding:0 10px 0 2px;margin:0;border-bottom:none;border-right:1px solid var(--border)}
+    .logo .lg-sub{display:none}
+    .nav-item{padding:7px 11px;border-left:none;border-bottom:2px solid transparent}
+    .nav-item.active{border-left:none;border-bottom-color:var(--accent);background:transparent}
+    .nav-spacer,.nav-foot{display:none}
+
+    .topbar{flex-wrap:wrap;gap:8px;padding:9px 11px}
+    .topbar .sub{display:none}
+    .topbar h1{font-size:14px}
+    .tb-btns{gap:7px;flex-wrap:wrap}
+    .btn{padding:7px 9px;font-size:10px}
+
+    .filters{flex-wrap:wrap;gap:9px;padding:9px 11px}
+    .fl{flex:1 1 44%}
+    .fl select,.fl input{min-width:0;width:100%}
+    .filters .right{margin-left:0;width:100%;justify-content:flex-start}
+
+    .statusbar{flex-wrap:wrap;white-space:normal;line-height:1.5;font-size:9.5px;padding:7px 11px}
+
+    th.col-art,td.c-art{width:116px;min-width:116px}
+    td.c-art{padding:9px 9px}
+    th.col-metric{left:116px}
+    td.c-metric{left:116px;width:96px;min-width:96px;padding:0 9px;white-space:normal;line-height:1.25}
+    td.val{min-width:74px;padding:0 8px}
+    .acard .photo{height:98px}
+    .acard .a-num{font-size:11px}
+    .acard .kv{display:none}
+
+    .dashwrap{padding:12px}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+    .kpi{padding:11px 12px}
+    .kpi-v{font-size:16px}
+    .dash-row{grid-template-columns:1fr;gap:9px}
+    .card{padding:13px 14px}
+    .bar-row{grid-template-columns:62px 1fr 66px;font-size:10px;gap:7px}
+  }
+
   ::-webkit-scrollbar{height:11px;width:11px}
   ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px}
   ::-webkit-scrollbar-track{background:transparent}
