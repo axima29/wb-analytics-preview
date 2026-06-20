@@ -315,7 +315,9 @@
       const m=buildModel(txt);
       if(!m.articles.length) throw new Error("0 артикулов");
       MODEL=m; MODEL.live=true;
-      setStatus("ok", `Живой источник: Google Sheets · ${m.articles.length} артикулов · даты ${m.dates.join(" · ")} · обновлено ${nowStr()}`);
+      const s=schedInfo();
+      setStatus("ok", `Обновлено: <b>${s.updated}</b> (МСК)&nbsp; ·&nbsp; следующее обновление: <b>${s.next}</b>`+
+                      `&nbsp; ·&nbsp; источник: Google Sheets · ${m.articles.length} арт.`);
     }catch(e){
       // фолбэк: оффлайн-снимок (например, при открытии файла двойным кликом)
       MODEL = window.SNAPSHOT || {dates:[],articles:[]};
@@ -328,6 +330,20 @@
   function nowStr(){
     const d=new Date(), p=n=>String(n).padStart(2,"0");
     return `${p(d.getDate())}.${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  // Расписание обновлений: 09:00 (за прошлые сутки) и 15:00 (текущий день), МСК.
+  function schedInfo(){
+    const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',year:'numeric',
+      month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const p={}; f.formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
+    const Y=+p.year,M=+p.month,D=+p.day,mins=(+p.hour)*60+(+p.minute);
+    const todayUTC=Date.UTC(Y,M-1,D), pad=n=>String(n).padStart(2,'0');
+    const dstr=ms=>{const d=new Date(ms);return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth()+1)}.${d.getUTCFullYear()}`;};
+    let last,next;
+    if(mins<540){ last={ms:todayUTC-864e5,t:'15:00'}; next={t:'09:00',d:'сегодня'}; }
+    else if(mins<900){ last={ms:todayUTC,t:'09:00'}; next={t:'15:00',d:'сегодня'}; }
+    else { last={ms:todayUTC,t:'15:00'}; next={t:'09:00',d:'завтра'}; }
+    return { updated:`${last.t}, ${dstr(last.ms)}`, next:`${next.d} в ${next.t}` };
   }
   function setStatus(kind,text){
     document.getElementById('stDot').className='dot'+(kind==='ok'?'':' '+kind);
